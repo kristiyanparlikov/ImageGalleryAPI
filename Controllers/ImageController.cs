@@ -19,6 +19,34 @@ namespace photo_gallery_api.Controllers
             _imageRepository = imageRepository;
         }
 
+        //[HttpGet]
+        //[Route("/api/[controller]/{userId}")]
+        //public ActionResult GetImages(int userId)
+        //{
+        //    var images = _imageRepository.GetUserFavourites(userId);
+        //    return Ok(images);
+        //}
+
+        [HttpGet]
+        [Route("/api/[controller]/{userId}")]
+        public ActionResult GetImages([FromQuery] ImageParameters imageParameters, int userId)
+        {
+            var images = _imageRepository.GetUserFavourites(imageParameters, userId);
+            var metadata = new
+            {
+                images.TotalCount,
+                images.PageSize,
+                images.CurrentPage,
+                images.TotalPages,
+                images.HasNext,
+                images.HasPrevious
+            };
+            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
+
+            return Ok(images);
+        }
+
+
         [HttpGet]
         public ActionResult GetImages([FromQuery] ImageParameters imageParameters)
         {

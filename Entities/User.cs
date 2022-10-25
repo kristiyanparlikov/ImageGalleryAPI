@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace photo_gallery_api.Entities
 {
@@ -9,6 +10,7 @@ namespace photo_gallery_api.Entities
 
         public string Email { get; set; } = string.Empty;
 
-        public ICollection<Favourite> Favourites { get; set; }
+        [JsonIgnore]
+        public ICollection<Favourite> Images { get; set; }
     }
 }

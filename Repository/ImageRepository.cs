@@ -9,6 +9,8 @@ namespace photo_gallery_api.Repository
 
     public interface IImageRepository
     {
+        //IEnumerable<Image> GetUserFavourites(int userId);
+        PagedList<Image> GetUserFavourites(ImageParameters imageParameters, int userId);
         PagedList<Image> GetImages(ImageParameters imageParameters);
         Task<Image> GetImageById(int imageId);
         Task<Image> InsertImage(IFormFile imgfile);
@@ -29,6 +31,18 @@ namespace photo_gallery_api.Repository
         public PagedList<Image> GetImages(ImageParameters imageParameters)
         {
             return PagedList<Image>.ToPagedList(_context.Images, imageParameters.PageNumber, imageParameters.PageSize);
+        }
+
+        //public IEnumerable<Image> GetUserFavourites(int userId)
+        //{
+        //    IEnumerable<Image> images = _context.Images.Where(image => image.Users.Any(user => user.UserId == userId));
+        //    return images;
+        //}
+
+        public PagedList<Image> GetUserFavourites(ImageParameters imageParameters, int userId)
+        {
+            var source = _context.Images.Where(image => image.Users.Any(user => user.UserId == userId));
+            return PagedList<Image>.ToPagedList(source, imageParameters.PageNumber, imageParameters.PageSize);
         }
 
         public async Task<Image> InsertImage(IFormFile imgFile)
