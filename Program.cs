@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using photo_gallery_api.ExceptionMiddleware;
 using photo_gallery_api.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +36,7 @@ if (app.Environment.IsDevelopment())
 app.UseStaticFiles();
 app.UseCors("corspolicy");
 app.UseHttpsRedirection();
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseAuthorization();
 

@@ -21,6 +21,7 @@ namespace photo_gallery_api.Controllers
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             IEnumerable<User> result = await _userRepository.GetUsers();
+            if (result == null) return NotFound("No users exist in the database");
             return Ok(result);
         }
 
@@ -28,42 +29,34 @@ namespace photo_gallery_api.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> SignIn([FromBody] UserModel model)
         {
-            User result = await _userRepository.GetUserByEmail(model.Email);
-
-            if (result == null)
+            if (!ModelState.IsValid)
             {
-                return NotFound("User with such email does not exist!");
+                return BadRequest(ModelState);
             }
-            return Ok(result);
+            User user = await _userRepository.GetUserByEmail(model.Email);
+
+            if (user == null) return NotFound(new { message = $"An existing record with email '{model.Email}' was not found." });
+            return Ok(user);
         }
 
         [Route("SignUp")]
         [HttpPost]
-        public async Task<ActionResult<User>> SignUp([FromBody]UserModel model)
+        public async Task<ActionResult<User>> SignUp([FromBody] UserModel model)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-                User userFromDb = await _userRepository.GetUserByEmail(model.Email);
-                if(userFromDb == null)
-                {
-                    User user = new User { Email = model.Email };
-                    var result = await _userRepository.InsertUser(user);
-                    return Created("Created user with email: " + result.Email, result);
-                }
-                else
-                {
-                    return StatusCode(409, "Email is already taken!");
-                }
-                
-                
+                return BadRequest(ModelState);
             }
-            catch (Exception ex)
+            User userFromDb = await _userRepository.GetUserByEmail(model.Email);
+            if (userFromDb == null)
             {
-                return StatusCode(500, ex);
+                User user = new() { Email = model.Email };
+                var result = await _userRepository.InsertUser(user);
+                return Created("Created user with email: " + result.Email, result);
+            }
+            else
+            {
+                return Conflict(new { message = $"An existing record with email '{model.Email}' was already found." });
             }
         }
 
@@ -73,7 +66,7 @@ namespace photo_gallery_api.Controllers
             User result = await _userRepository.GetUserById(id);
             if (result == null)
             {
-                return NotFound();
+                return NotFound(new { message = $"An existing record with id '{id}' was not found." });
             }
             await _userRepository.DeleteUser(result);
             return NoContent();

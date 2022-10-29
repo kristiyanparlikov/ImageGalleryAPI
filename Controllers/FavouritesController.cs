@@ -22,6 +22,7 @@ namespace photo_gallery_api.Controllers
         public ActionResult GetFavourites(int userId, [FromQuery] ImageParameters imageParameters)
         {
             var images = _imageRepository.GetFavouritesPaged(imageParameters, userId);
+
             var metadata = new
             {
                 images.TotalCount,
@@ -39,48 +40,35 @@ namespace photo_gallery_api.Controllers
         [HttpPost]
         public async Task<ActionResult> AddFavourite(FavouriteModel model)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-                if (await _imageRepository.InsertFavourite(model.UserId, model.ImageId))
-                {
-                    return Ok("Image saved to favourites");
-                }
-                else
-                {
-                    return BadRequest("Image could not be added to favourites");
-                }
+                return BadRequest(ModelState);
             }
-            catch (Exception ex)
+            if (await _imageRepository.InsertFavourite(model.UserId, model.ImageId))
             {
-                return StatusCode(500, ex);
+                return Ok("Image saved to favourites");
             }
+            else
+            {
+                return BadRequest("Image could not be added to favourites");
+            }
+
         }
 
         [HttpDelete]
         public async Task<ActionResult> DeleteFavourite(FavouriteModel model)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-                if (await _imageRepository.RemoveFavourite(model.UserId, model.ImageId))
-                {
-                    return Ok("Image removed from favourites");
-                }
-                else
-                {
-                    return BadRequest("Image could not be removed from favourites");
-                }
+                return BadRequest(ModelState);
             }
-            catch (Exception ex)
+            if (await _imageRepository.RemoveFavourite(model.UserId, model.ImageId))
             {
-                return StatusCode(500, ex);
+                return Ok("Image removed from favourites");
+            }
+            else
+            {
+                return BadRequest("Image could not be removed from favourites");
             }
         }
     }

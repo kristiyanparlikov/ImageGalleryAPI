@@ -19,11 +19,11 @@ namespace photo_gallery_api.Controllers
             _imageRepository = imageRepository;
         }
 
-        [HttpGet("{imageId}")]
-        public async Task<ActionResult> GetImage(int imageId)
+        [HttpGet("{id}")]
+        public async Task<ActionResult> GetImage(int id)
         {
-            var image = await _imageRepository.GetImageById(imageId);
-            if (image == null) return NotFound();
+            var image = await _imageRepository.GetImageById(id);
+            if (image == null) return NotFound(new { message = $"An existing record with id '{id}' was not found." });
             return Ok(image);
         }
 
@@ -33,6 +33,7 @@ namespace photo_gallery_api.Controllers
             if (userId.HasValue)
             {
                 var images = _imageRepository.GetImagesIncludingFavouritePaged(imageParameters, (int)userId);
+
                 var metadata = new
                 {
                     images.TotalCount,
@@ -42,12 +43,15 @@ namespace photo_gallery_api.Controllers
                     images.HasNext,
                     images.HasPrevious
                 };
+
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
+
                 return Ok(images);
             }
             else
             {
                 var images = _imageRepository.GetImagesPaged(imageParameters);
+
                 var metadata = new
                 {
                     images.TotalCount,
@@ -57,7 +61,9 @@ namespace photo_gallery_api.Controllers
                     images.HasNext,
                     images.HasPrevious
                 };
+
                 Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(metadata));
+
                 return Ok(images);
             }
 
@@ -66,30 +72,28 @@ namespace photo_gallery_api.Controllers
         [HttpPost]
         public async Task<ActionResult> UploadImage([FromForm] IFormFile imgFile)
         {
-            try
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
-                var result = await _imageRepository.InsertImage(imgFile);
-                if (result == null) return BadRequest("Image could not be uploaded");
-                return Created("Image uploaded successfully!", imgFile);
+                return BadRequest(ModelState);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, ex);
-            }
+            var result = await _imageRepository.InsertImage(imgFile);
+
+            if (result == null) return BadRequest("Image could not be uploaded");
+
+            return Created("Image uploaded successfully!", imgFile);
+
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteImage(int id)
         {
             Image result = await _imageRepository.GetImageById(id);
+
             if (result == null)
             {
-                return NotFound();
+                return NotFound(new { message = $"An existing record with id '{id}' was not found." });
             }
+
             await _imageRepository.RemoveImage(result);
             return NoContent();
 
