@@ -1,17 +1,18 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using photo_gallery_api.Entities;
+using photo_gallery_api.Models;
 using photo_gallery_api.Repository;
 
 namespace photo_gallery_api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class UsersController : ControllerBase
     {
         public readonly IUserRepository _userRepository;
 
-        public UserController(IUserRepository userRepository)
+        public UsersController(IUserRepository userRepository)
         {
             _userRepository = userRepository;
         }
@@ -23,20 +24,22 @@ namespace photo_gallery_api.Controllers
             return Ok(result);
         }
 
-        [HttpGet("{email}")]
-        public async Task<ActionResult<User>> GetUser(string email)
+        [Route("SignIn")]
+        [HttpPost]
+        public async Task<ActionResult<User>> SignIn([FromBody] UserModel model)
         {
-            User result = await _userRepository.GetUserByEmail(email);
+            User result = await _userRepository.GetUserByEmail(model.Email);
 
             if (result == null)
             {
-                return NotFound();
+                return NotFound("User with such email does not exist!");
             }
             return Ok(result);
         }
 
+        [Route("SignUp")]
         [HttpPost]
-        public async Task<ActionResult<User>> CreateUser([FromBody]string email)
+        public async Task<ActionResult<User>> SignUp([FromBody]UserModel model)
         {
             try
             {
@@ -44,10 +47,10 @@ namespace photo_gallery_api.Controllers
                 {
                     return BadRequest(ModelState);
                 }
-                User userFromDb = await _userRepository.GetUserByEmail(email);
+                User userFromDb = await _userRepository.GetUserByEmail(model.Email);
                 if(userFromDb == null)
                 {
-                    User user = new User { Email = email };
+                    User user = new User { Email = model.Email };
                     var result = await _userRepository.InsertUser(user);
                     return Created("Created user with email: " + result.Email, result);
                 }

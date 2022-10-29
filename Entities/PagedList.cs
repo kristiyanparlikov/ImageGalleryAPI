@@ -1,4 +1,6 @@
-﻿namespace photo_gallery_api.Entities
+﻿using photo_gallery_api.Models;
+
+namespace photo_gallery_api.Entities
 {
     public class PagedList<T> : List<T>
     {
@@ -6,7 +8,6 @@
         public int TotalPages { get; private set; }
         public int PageSize { get; private set; }
         public int TotalCount { get; private set; }
-
         public bool HasPrevious => CurrentPage > 1;
         public bool HasNext => CurrentPage < TotalPages;
 

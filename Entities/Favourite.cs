@@ -1,11 +1,15 @@
-﻿namespace photo_gallery_api.Entities
+﻿using System.Text.Json.Serialization;
+
+namespace photo_gallery_api.Entities
 {
     public class Favourite
     {
         public int UserId { get; set; }
-        public User User { get; set; }
+        [JsonIgnore]
+        public User? User { get; set; }
         public int ImageId { get; set; }
-        public Image Image { get; set; }
+        [JsonIgnore]
+        public Image? Image { get; set; }
 
     }
 }
